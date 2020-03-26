@@ -116,7 +116,7 @@ class DashboardWidget extends StatelessWidget {
               children: <Widget>[
                 DataCardWidget(
                   title: 'CONFIRMED',
-                  backgroundColor: Colors.blue,
+                  backgroundColor: Colors.indigo,
                   dataWidget: (dashboardData == null)
                       ? Center(
                           child: Container(
@@ -188,7 +188,7 @@ class DashboardWidget extends StatelessWidget {
                 ),
                 DataCardWidget(
                   title: 'DEATH',
-                  backgroundColor: Colors.grey,
+                  backgroundColor: Colors.grey.shade700,
                   dataWidget: (dashboardData == null)
                       ? Center(
                           child: Container(
@@ -336,7 +336,7 @@ class StateListHeadingWidget extends StatelessWidget {
                   height: 16.0,
                   width: 16.0,
                   decoration: BoxDecoration(
-                    color: Colors.blue,
+                    color: Colors.indigo,
                     boxShadow: [
                       BoxShadow(
                         color: Colors.grey.shade200,
@@ -381,7 +381,7 @@ class StateListHeadingWidget extends StatelessWidget {
                   height: 16.0,
                   width: 16.0,
                   decoration: BoxDecoration(
-                    color: Colors.grey,
+                    color: Colors.grey.shade700,
                     boxShadow: [
                       BoxShadow(
                         color: Colors.grey.shade200,
@@ -469,7 +469,7 @@ class StateListCardWidget extends StatelessWidget {
                     style: GoogleFonts.nunito(
                       textStyle: Theme.of(context).textTheme.body1.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue,
+                            color: Colors.indigo,
                           ),
                     ),
                   ),
@@ -502,7 +502,7 @@ class StateListCardWidget extends StatelessWidget {
                     style: GoogleFonts.nunito(
                       textStyle: Theme.of(context).textTheme.body1.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: Colors.grey,
+                            color: Colors.grey.shade700,
                           ),
                     ),
                   ),
