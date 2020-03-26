@@ -47,6 +47,7 @@ class _DistrictDataPageState extends State<DistrictDataPage> {
           // ),
         ),
         body: ListView(
+          padding: EdgeInsets.all(16.0),
           children: <Widget>[
             DistrictListHeadingWidget(),
             ...<Widget>[
