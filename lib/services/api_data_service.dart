@@ -131,8 +131,8 @@ class ApiDataService with ChangeNotifier {
             death + stateData[stateKey]['districtData'][districtKey]['deaths'];
 
         // print(districtData);
-
-        allDistrictData.add(districtData);
+        statedata['districts'].add(districtData);
+        // allDistrictData.add(districtData);
         districtData = {
           'name': '',
           'confirmed': 0,
@@ -143,7 +143,7 @@ class ApiDataService with ChangeNotifier {
       });
 
       // print(allDistrictData);
-      statedata['districts'].add(allDistrictData);
+
       stateWiseData.add(statedata);
       statedata = {
         'name': '',

@@ -1,6 +1,10 @@
+import 'dart:io';
+
+import 'package:covid19india/pages/district_data_page.dart';
 import 'package:covid19india/services/api_data_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
@@ -13,87 +17,103 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final ApiDataService apiDataService = Provider.of<ApiDataService>(context);
 
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            'Covid-19 India',
-            style: GoogleFonts.roboto(
-              textStyle: Theme.of(context).textTheme.headline.copyWith(
-                  color: Colors.blueGrey.shade900, fontWeight: FontWeight.bold),
-            ),
-          ),
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(
-                Icons.refresh,
+    return WillPopScope(
+      onWillPop: () {
+        exit(0);
+        return;
+      },
+      child: SafeArea(
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(
+              'Covid-19 India',
+              style: GoogleFonts.roboto(
+                textStyle: Theme.of(context).textTheme.headline.copyWith(
+                    color: Colors.blueGrey.shade900,
+                    fontWeight: FontWeight.bold),
               ),
-              onPressed: () {
-                setState(() {});
-              },
             ),
-          ],
-          automaticallyImplyLeading: false,
-          centerTitle: true,
-          iconTheme: IconThemeData(
-            color: Theme.of(context).primaryColor,
+            actions: <Widget>[
+              IconButton(
+                icon: Icon(
+                  Icons.insert_chart,
+                ),
+                onPressed: () {
+                  setState(() {});
+                },
+              ),
+            ],
+            automaticallyImplyLeading: false,
+            centerTitle: true,
+            iconTheme: IconThemeData(
+              color: Theme.of(context).primaryColor,
+            ),
+            backgroundColor: Colors.white,
+            elevation: 1.0,
+            // leading: IconButton(
+            //   icon: Icon(Icons.help),
+            //   onPressed: () {},
+            // ),
           ),
-          backgroundColor: Colors.white,
-          elevation: 1.0,
-        ),
-        body: FutureBuilder<List<Map<String, dynamic>>>(
-            future: apiDataService.getLatestStateWiseData(),
-            builder:
-                (context, AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
-              if (snapshot.hasData) {
-                return ListView(
-                  padding: EdgeInsets.all(8.0),
-                  children: <Widget>[
-                    DashboardWidget(
-                      dashboardData: snapshot.data[0],
+          body: FutureBuilder<List<Map<String, dynamic>>>(
+              future: apiDataService.getLatestStateWiseData(),
+              builder: (context,
+                  AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
+                if (snapshot.hasData) {
+                  return LiquidPullToRefresh(
+                    onRefresh: () async {
+                      setState(() {});
+                    },
+                    child: ListView(
+                      padding: EdgeInsets.all(8.0),
+                      children: <Widget>[
+                        DashboardWidget(
+                          dashboardData: snapshot.data[0],
+                        ),
+                        StateListHeadingWidget(),
+                        ...<Widget>[
+                          ...snapshot.data
+                              .sublist(1, snapshot.data.length - 1)
+                              .map((data) {
+                            return StateListCardWidget(
+                              name: data['state'],
+                              confirmed: data['confirmed'].toString(),
+                              active: data['active'].toString(),
+                              recovered: data['recovered'].toString(),
+                              death: data['deaths'].toString(),
+                            );
+                          }).toList()
+                        ],
+                      ],
                     ),
-                    StateListHeadingWidget(),
-                    ...<Widget>[
-                      ...snapshot.data
-                          .sublist(1, snapshot.data.length - 1)
-                          .map((data) {
-                        return StateListCardWidget(
-                          name: data['state'],
-                          confirmed: data['confirmed'].toString(),
-                          active: data['active'].toString(),
-                          recovered: data['recovered'].toString(),
-                          death: data['deaths'].toString(),
-                        );
-                      }).toList()
-                    ],
-                  ],
-                );
-              } else {
-                return ListView(
-                  padding: EdgeInsets.all(8.0),
-                  children: <Widget>[
-                    DashboardWidget(
-                      dashboardData: null,
-                    ),
-                    StateListHeadingWidget(),
-                    Container(
-                      height: 200.0,
-                      child: Center(
-                        child: Container(
-                          height: 20.0,
-                          width: 20.0,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.0,
-                            // valueColor:
-                            //     AlwaysStoppedAnimation<Color>(Colors.white),
+                  );
+                } else {
+                  return ListView(
+                    padding: EdgeInsets.all(8.0),
+                    children: <Widget>[
+                      DashboardWidget(
+                        dashboardData: null,
+                      ),
+                      StateListHeadingWidget(),
+                      Container(
+                        height: 200.0,
+                        child: Center(
+                          child: Container(
+                            height: 20.0,
+                            width: 20.0,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.0,
+                              // valueColor:
+                              //     AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                );
-              }
-            }),
+                    ],
+                  );
+                }
+              }),
+        ),
       ),
     );
   }
@@ -419,98 +439,117 @@ class StateListCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      alignment: Alignment.topCenter,
-      margin: EdgeInsets.only(top: 12.0),
-      padding: EdgeInsets.only(
-        left: 12.0,
-        right: 8.0,
-        top: 12.0,
-        bottom: 12.0,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade200,
-            blurRadius: 4.0,
-            spreadRadius: 2.0,
+    final ApiDataService apiDataService = Provider.of<ApiDataService>(context);
+
+    return InkWell(
+      onTap: () {
+        Map<String, dynamic> stateData = apiDataService.getStateWiseData
+            .firstWhere((test) => (test['name'] == name));
+
+        // print(stateData);
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DistrictDataPage(
+              stateData: stateData,
+            ),
           ),
-        ],
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          Flexible(
-            flex: 1,
-            child: Container(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                name,
-                style: GoogleFonts.nunito(
-                  textStyle: Theme.of(context).textTheme.subtitle.copyWith(
-                        fontWeight: FontWeight.bold,
-                        // color: Colors.white70,
-                      ),
+        );
+      },
+      child: Container(
+        alignment: Alignment.topCenter,
+        margin: EdgeInsets.only(top: 12.0),
+        padding: EdgeInsets.only(
+          left: 12.0,
+          right: 8.0,
+          top: 12.0,
+          bottom: 12.0,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.shade200,
+              blurRadius: 4.0,
+              spreadRadius: 2.0,
+            ),
+          ],
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Flexible(
+              flex: 1,
+              child: Container(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  name,
+                  style: GoogleFonts.nunito(
+                    textStyle: Theme.of(context).textTheme.subtitle.copyWith(
+                          fontWeight: FontWeight.bold,
+                          // color: Colors.white70,
+                        ),
+                  ),
                 ),
               ),
             ),
-          ),
-          Flexible(
-            flex: 2,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                Container(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    confirmed,
-                    style: GoogleFonts.nunito(
-                      textStyle: Theme.of(context).textTheme.body1.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.indigo,
-                          ),
+            Flexible(
+              flex: 2,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  Container(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      confirmed,
+                      style: GoogleFonts.nunito(
+                        textStyle: Theme.of(context).textTheme.body1.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.indigo,
+                            ),
+                      ),
                     ),
                   ),
-                ),
-                Container(
-                  child: Text(
-                    active,
-                    style: GoogleFonts.nunito(
-                      textStyle: Theme.of(context).textTheme.body1.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.red,
-                          ),
+                  Container(
+                    child: Text(
+                      active,
+                      style: GoogleFonts.nunito(
+                        textStyle: Theme.of(context).textTheme.body1.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.red,
+                            ),
+                      ),
                     ),
                   ),
-                ),
-                Container(
-                  child: Text(
-                    recovered,
-                    style: GoogleFonts.nunito(
-                      textStyle: Theme.of(context).textTheme.body1.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
-                          ),
+                  Container(
+                    child: Text(
+                      recovered,
+                      style: GoogleFonts.nunito(
+                        textStyle: Theme.of(context).textTheme.body1.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green,
+                            ),
+                      ),
                     ),
                   ),
-                ),
-                Container(
-                  child: Text(
-                    death,
-                    style: GoogleFonts.nunito(
-                      textStyle: Theme.of(context).textTheme.body1.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey.shade700,
-                          ),
+                  Container(
+                    child: Text(
+                      death,
+                      style: GoogleFonts.nunito(
+                        textStyle: Theme.of(context).textTheme.body1.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade700,
+                            ),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

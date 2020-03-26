@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'Flutter Demo',
+        title: 'Covid-19 India',
         theme: ThemeData(
           primarySwatch: Colors.indigo,
         ),
